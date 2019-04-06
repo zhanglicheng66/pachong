@@ -27,6 +27,60 @@
 </div>
 
 
+<div class="container fileShowNode hide">
+  <table class="table text-center table-hover">
+    <thead>
+    <tr>
+      <td>序号</td>
+      <td>文件名</td>
+      <td>文件大小</td>
+      <td>上传时间</td>
+      <td>下载次数</td>
+      <td>是否删除</td>
+    </tr>
+    </thead>
+    <tbody>
+    <!--
+    <tr>
+      <td>1</td>
+      <td>dsf.jpg</td>
+      <td>21mb</td>
+      <td>2019/11</td>
+      <td>0</td>
+      <td><input type="button" class="btn btn-default btn-danger btn-xs" value="删除"></td>
+    </tr>
+    -->
+    </tbody>
+  </table>
+  <form class="form-inline">
+    <div class="form-group">
+      <input type="file" name="" class="fsNode">
+
+    </div>
+    <div class="form-group">
+      <input type="button" class="btn btn-default btn-primary btn-xs btn-setFiles" value="上传文件" data-toggle="modal" data-target=".bbb">
+    </div>
+  </form>
+
+</div>
+
+<div class="modal fade bbb" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title">Modal title</h4>
+      </div>
+      <div class="modal-body bodytextNode">
+        <p>One fine body&hellip;</p>
+      </div>
+
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+
+
 <div class="modal fade abc" tabindex="-1" role="dialog">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
@@ -53,7 +107,8 @@
 
 <script src="https://cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js"></script>
-<script>
+<script type="text/javascript">
+  let index = 0;
   $('.btn-myBtn').on({
     click(){
       $('.myForm .form-group').removeClass('has-error');
@@ -62,6 +117,48 @@
     }
   })
 
+
+  function toTr(index,filesName,size,timer,download,hash){
+    var oTr = document.createElement('tr')
+    $(oTr).attr('hash',hash);
+    oTr.innerHTML=`
+        <td>${index}</td>
+        <td>${filesName}</td>
+        <td>${size}</td>
+        <td>${timer}</td>
+        <td>${download}</td>
+        <td><input type="button" class="btn btn-default btn-danger btn-xs" value="删除"> </td>；
+
+    `
+
+    return oTr;
+  }
+  //上传文件
+  $('.btn-setFiles').on({
+    'click':function () {
+      var formData = new FormData();
+      console.log($('.fsNode')[0].files[0])
+      formData.append('files',$('.fsNode')[0].files[0]);
+      formData.append('Fsnames',$('.userNode').val());
+      var xhr = new XMLHttpRequest();
+      xhr.open('post','http://localhost:9111/login/getfiles',true);
+      xhr.send(formData);
+      xhr.onload=function () {
+        console.log(xhr.responseText)
+        var json = eval('('+xhr.responseText+')');
+        if(json.ok==1){
+          $('.bodytextNode p').html('上传成功');
+          $('.fileShowNode tbody')[0].appendChild(toTr(index,$('.fsNode')[0].files[0].name,($('.fsNode')[0].files[0].size/1024).toFixed(2)+'KB',json.timer,0,json.hash));
+          index++;
+
+        }
+        else {
+          $('.bodytextNode p').html(json.msg);
+        }
+        $('.fsNode').val('');
+      }
+    }
+  })
   //登陆
   $('.btn-loginNode').on({
     click(){
@@ -79,6 +176,7 @@
             $('.btn-myBtn').hide();
             $('.namesNode').removeClass('hide');
             $('.namesNode span').html($('.userNode').val())
+            $('.fileShowNode').removeClass('hide');
 
           }
           else {
